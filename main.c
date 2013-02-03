@@ -24,6 +24,7 @@ int start(char* command) {
     start(command);
     return 0;
   }
+  putenv("MALLOC_CHECK_=3");
   char* args[sizeof(command)] = {command};
   execvp(command, args);
   printf("execvp failed\n");
