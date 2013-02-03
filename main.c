@@ -2,11 +2,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <string.h>
+#include <errno.h>
 
 static const struct option g_LongOpts[] = {
   { "execute", required_argument, 0, 'e' },
   { 0, 0, 0, 0 }
 };
+
+int start(char* command) {
+  int pid = fork();
+  if (pid == -1) {
+    printf("Error: %s", strerror(errno));
+    exit(2);
+  }
+  if (pid > 0) {
+    printf("Pid: %d\n", pid);
+    waitpid(pid, NULL, 0);
+    start(command);
+    return 0;
+  }
+  char* args[sizeof(command)] = {command};
+  execvp(command, args);
+  printf("execvp failed\n");
+  exit(2);
+}
 
 int main(int argc, char** argv) {
   char* execute = NULL;
@@ -22,13 +44,6 @@ int main(int argc, char** argv) {
     printf("Missing the -e flag.\n");
     return 1;
   }
-  while (1) {
-    int ret = system(execute);
-    if (WIFSIGNALED(ret) && (WTERMSIG(ret) == SIGINT || WTERMSIG(ret) == SIGQUIT)) {
-      printf("User cancelled the process.\n");
-      return 0;
-    }
-    printf("return: %i\n", ret);
-  }
+  start(execute);
   return 0;
 }
