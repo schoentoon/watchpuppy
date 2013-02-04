@@ -6,7 +6,7 @@ CC     := gcc
 CXX    := g++
 
 BINARY := watchpuppy
-DEPS   := build/main.o
+DEPS   := build/main.o build/check_pid.o
 
 .PHONY: all clean dev
 

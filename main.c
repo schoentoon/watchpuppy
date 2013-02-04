@@ -1,9 +1,10 @@
+#include "check_pid.h"
+
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
-#include <sys/wait.h>
 #include <string.h>
 #include <errno.h>
 
@@ -19,16 +20,21 @@ int start(char* command) {
     exit(2);
   }
   if (pid > 0) {
-    printf("Pid: %d\n", pid);
-    waitpid(pid, NULL, 0);
+    printf("pid: %d\n", pid);
+    while (check_pid(pid) == 0)
+      sleep(1);
     start(command);
     return 0;
+  } else if (pid == 0) {
+    putenv("MALLOC_CHECK_=3");
+    const char *argv[] = { "sh", "-c", command, NULL };
+    execvp("sh", (char * const *) argv);
+    printf("execvp failed\n");
+    exit(2);
+  } else {
+    printf("fork returned: %d\n", pid);
+    exit(3);
   }
-  putenv("MALLOC_CHECK_=3");
-  const char *argv[] = { "sh", "-c", command, NULL };
-  execvp("sh", (char * const *) argv);
-  printf("execvp failed\n");
-  exit(2);
 }
 
 int main(int argc, char** argv) {
