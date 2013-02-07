@@ -3,12 +3,10 @@ INC    := -I. $(INC)
 LFLAGS := -lpthread
 DEFINES:= $(DEFINES)
 CC     := gcc
-CXX    := g++
-
 BINARY := watchpuppy
-DEPS   := build/main.o build/check_pid.o
+DEPS   := build/main.o build/check_pid.o build/check_tcp.o
 
-.PHONY: all clean dev
+.PHONY: all clean dev test
 
 all: build $(DEPS) link
 
@@ -26,3 +24,6 @@ link: $(DEPS)
 
 clean:
 	rm -fv $(DEPS) bin/$(BINARY)
+
+test:
+	$(MAKE) -C test
