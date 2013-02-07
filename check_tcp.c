@@ -39,7 +39,7 @@ int check_tcp_ports()
     close(sock);
     if (ret == -1) {
       node->fail_counter++;
-      if (node->fail_counter > 3)
+      if (node->fail_counter >= 3)
         return 1;
     } else
       node->fail_counter = 0;

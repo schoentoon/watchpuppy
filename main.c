@@ -56,7 +56,6 @@ int start(char* command) {
 
 int main(int argc, char** argv) {
   char* execute = NULL;
-  int port;
   int iArg, iOptIndex, tmp = -1;
   while ((iArg = getopt_long(argc, argv, "e:i:t:", g_LongOpts, &iOptIndex)) != -1) {
     switch (iArg) {
@@ -64,10 +63,12 @@ int main(int argc, char** argv) {
         execute = optarg;
         break;
       case 't':
-        port = atoi(optarg);
-        if (port >= 0 && port <= 65535) {
+        tmp = strtol(optarg, NULL, 10);
+        if ((errno == ERANGE || (tmp == LONG_MAX || tmp == LONG_MIN)) || (errno != 0 && tmp == 0))
+          break;
+        if (tmp >= 0 && tmp <= 65535) {
           struct tcp_port* tcp_port = new_tcp_port();
-          tcp_port->port = (unsigned short) port;
+          tcp_port->port = (unsigned short) tmp;
           if (!tcp_ports)
             tcp_ports = tcp_port;
           else {
