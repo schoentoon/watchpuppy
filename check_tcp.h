@@ -13,4 +13,6 @@ struct tcp_port* new_tcp_port();
 
 int check_tcp_ports();
 
+void reset_tcp_ports();
+
 #endif // _CHECK_TCP_H

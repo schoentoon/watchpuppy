@@ -32,12 +32,14 @@ int start(char* command) {
       if (check_pid(pid))
         break;
       if (check_tcp_ports()) {
-        printf("One of our tcp ports are dead..\n");
+        printf("One of our tcp ports are dead.. Let's send it a SIGKILL.\n");
+        kill(pid, 9);
         break;
       }
       sleep(interval);
     }
     fprintf(stderr, "Our child seems dead :( let's restart it.\n");
+    reset_tcp_ports();
     start(command);
     return 0;
   } else if (pid == 0) {
@@ -75,6 +77,7 @@ int main(int argc, char** argv) {
             node->next = tcp_port;
           }
         }
+        break;
       case 'i':
         tmp = strtol(optarg, NULL, 10);
         if ((errno == ERANGE || (tmp == LONG_MAX || tmp == LONG_MIN)) || (errno != 0 && tmp == 0) || tmp < 0) {
