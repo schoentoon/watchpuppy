@@ -1,6 +1,5 @@
 CFLAGS := $(CFLAGS) -Wall -O2 -mtune=native -g
 INC    := -I. $(INC)
-LFLAGS := -lpthread
 DEFINES:= $(DEFINES)
 CC     := gcc
 BINARY := watchpuppy
@@ -20,7 +19,7 @@ build:
 	$(CC) $(CFLAGS) $(DEFINES) $(INC) -c -o $@ $(patsubst build/%o,%c,$@)
 
 link: $(DEPS)
-	$(CC) $(CFLAGS) $(DEFINES) $(INC) $(LFLAGS) -o bin/$(BINARY) $(DEPS)
+	$(CC) $(CFLAGS) $(DEFINES) $(INC) -o bin/$(BINARY) $(DEPS)
 
 clean:
 	rm -fv $(DEPS) bin/$(BINARY)

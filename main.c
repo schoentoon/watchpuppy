@@ -8,10 +8,15 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/wait.h>
+#include <limits.h>
+
+static int interval = 10;
 
 static const struct option g_LongOpts[] = {
   { "execute",  required_argument, 0, 'e' },
   { "tcp-port", required_argument, 0, 't' },
+  { "interval", required_argument, 0, 'i' },
   { 0, 0, 0, 0 }
 };
 
@@ -23,12 +28,16 @@ int start(char* command) {
   }
   if (pid > 0) {
     printf("pid: %d\n", pid);
-    while (check_pid(pid) == 0) {
+    while (1) {
+      if (check_pid(pid))
+        break;
       if (check_tcp_ports()) {
         printf("One of our tcp ports are dead..\n");
+        break;
       }
-      sleep(1);
+      sleep(interval);
     }
+    fprintf(stderr, "Our child seems dead :( let's restart it.\n");
     start(command);
     return 0;
   } else if (pid == 0) {
@@ -45,9 +54,9 @@ int start(char* command) {
 
 int main(int argc, char** argv) {
   char* execute = NULL;
-  int iArg, iOptIndex = -1;
   int port;
-  while ((iArg = getopt_long(argc, argv, "e:t:", g_LongOpts, &iOptIndex)) != -1) {
+  int iArg, iOptIndex, tmp = -1;
+  while ((iArg = getopt_long(argc, argv, "e:i:t:", g_LongOpts, &iOptIndex)) != -1) {
     switch (iArg) {
       case 'e':
         execute = optarg;
@@ -66,11 +75,18 @@ int main(int argc, char** argv) {
             node->next = tcp_port;
           }
         }
+      case 'i':
+        tmp = strtol(optarg, NULL, 10);
+        if ((errno == ERANGE || (tmp == LONG_MAX || tmp == LONG_MIN)) || (errno != 0 && tmp == 0) || tmp < 0) {
+          fprintf(stderr, "--interval requires a positive amount of seconds.\n");
+          return 1;
+        }
+        interval = tmp;
         break;
     }
   }
   if (!execute) {
-    printf("Missing the -e flag.\n");
+    fprintf(stderr, "Missing the -e flag.\n");
     return 1;
   }
   start(execute);
