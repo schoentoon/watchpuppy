@@ -7,9 +7,14 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/wait.h>
+#include <limits.h>
+
+static int interval = 10;
 
 static const struct option g_LongOpts[] = {
-  { "execute", required_argument, 0, 'e' },
+  { "execute",  required_argument, 0, 'e' },
+  { "interval", required_argument, 0, 'i' },
   { 0, 0, 0, 0 }
 };
 
@@ -21,8 +26,12 @@ int start(char* command) {
   }
   if (pid > 0) {
     printf("pid: %d\n", pid);
-    while (check_pid(pid) == 0)
-      sleep(1);
+    while (1) {
+      if (check_pid(pid))
+        break;
+      sleep(interval);
+    }
+    fprintf(stderr, "Our child seems dead :( let's restart it.\n");
     start(command);
     return 0;
   } else if (pid == 0) {
@@ -39,16 +48,24 @@ int start(char* command) {
 
 int main(int argc, char** argv) {
   char* execute = NULL;
-  int iArg, iOptIndex = -1;
-  while ((iArg = getopt_long(argc, argv, "e:", g_LongOpts, &iOptIndex)) != -1) {
+  int iArg, iOptIndex, tmp = -1;
+  while ((iArg = getopt_long(argc, argv, "e:i:", g_LongOpts, &iOptIndex)) != -1) {
     switch (iArg) {
       case 'e':
         execute = optarg;
         break;
+      case 'i':
+        tmp = strtol(optarg, NULL, 10);
+        if ((errno == ERANGE || (tmp == LONG_MAX || tmp == LONG_MIN)) || (errno != 0 && tmp == 0) || tmp < 0) {
+          fprintf(stderr, "--interval requires a positive amount of seconds.\n");
+          return 1;
+        }
+        interval = tmp;
+        break;
     }
   }
   if (!execute) {
-    printf("Missing the -e flag.\n");
+    fprintf(stderr, "Missing the -e flag.\n");
     return 1;
   }
   start(execute);
