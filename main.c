@@ -1,5 +1,6 @@
 #include "check_pid.h"
 #include "check_tcp.h"
+#include "debug.h"
 
 #include <getopt.h>
 #include <stdio.h>
@@ -24,11 +25,11 @@ static const struct option g_LongOpts[] = {
 int start(char* command) {
   int pid = fork();
   if (pid == -1) {
-    printf("Error: %s", strerror(errno));
+    fprintf(stderr, "Error: %s", strerror(errno));
     exit(2);
   }
   if (pid > 0) {
-    printf("pid: %d\n", pid);
+    DEBUG("pid: %d\n", pid);
     while (1) {
       if (check_pid(pid))
         break;
@@ -47,10 +48,10 @@ int start(char* command) {
     putenv("MALLOC_CHECK_=3");
     const char *argv[] = { "sh", "-c", command, NULL };
     execvp("sh", (char * const *) argv);
-    printf("execvp failed\n");
+    fprintf(stderr, "execvp failed\n");
     exit(2);
   } else {
-    printf("fork returned: %d\n", pid);
+    DEBUG("fork returned: %d\n", pid);
     exit(3);
   }
 }

@@ -1,4 +1,5 @@
 #include "check_tcp.h"
+#include "debug.h"
 
 #include <sys/socket.h>
 #include <stdio.h>
@@ -25,17 +26,17 @@ int check_tcp_ports()
   while (node) {
     int sock;
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-      perror("socket();");
+      fprintf(stderr, "Couldn't create socket.");
       exit(1);
     }
     struct sockaddr_in host;
     host.sin_family = AF_INET;
     host.sin_port = htons(node->port);
     host.sin_addr.s_addr = inet_addr("127.0.0.1");
-    printf("connect()\n");
+    DEBUG("connect()\n");
     int ret;
     ret = connect(sock, (struct sockaddr *) &host, sizeof(host));
-    printf("ret: %d\n", ret);
+    DEBUG("ret: %d\n", ret);
     close(sock);
     if (ret == -1) {
       if (node->fail_counter != -1) {
