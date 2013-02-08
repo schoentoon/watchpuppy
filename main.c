@@ -17,6 +17,7 @@ static const struct option g_LongOpts[] = {
   { "execute",  required_argument, 0, 'e' },
   { "tcp-port", required_argument, 0, 't' },
   { "interval", required_argument, 0, 'i' },
+  { "help",     no_argument,       0, 'h' },
   { 0, 0, 0, 0 }
 };
 
@@ -54,10 +55,19 @@ int start(char* command) {
   }
 }
 
+void usage() {
+  printf("USAGE: watchpuppy [options]\n");
+  printf("Options are:\n");
+  printf(" -e, --execute [program]\tProgram to execute, use quotes if you want to pass arguments.\n");
+  printf(" -t, --tcp-port [port]\t\tPort to monitor, once it won't be able to connect it'll restart your program.\n");
+  printf(" -i, --interval [seconds]\tAmount of seconds between checks if it's still alive, defaults to 10 seconds.\n");
+  printf(" -h, --help\t\t\tShow this help page.\n");
+}
+
 int main(int argc, char** argv) {
   char* execute = NULL;
   int iArg, iOptIndex, tmp = -1;
-  while ((iArg = getopt_long(argc, argv, "e:i:t:", g_LongOpts, &iOptIndex)) != -1) {
+  while ((iArg = getopt_long(argc, argv, "e:i:t:h", g_LongOpts, &iOptIndex)) != -1) {
     switch (iArg) {
       case 'e':
         execute = optarg;
@@ -87,6 +97,10 @@ int main(int argc, char** argv) {
         }
         interval = tmp;
         break;
+      default:
+      case 'h':
+        usage();
+        return 0;
     }
   }
   if (!execute) {
