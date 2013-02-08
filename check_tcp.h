@@ -3,7 +3,7 @@
 
 struct tcp_port {
   unsigned short port;
-  unsigned char fail_counter;
+  char fail_counter;
   struct tcp_port *next;
 };
 

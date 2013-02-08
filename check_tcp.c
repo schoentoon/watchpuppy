@@ -14,7 +14,7 @@ struct tcp_port *tcp_ports = NULL;
 struct tcp_port* new_tcp_port()
 {
   struct tcp_port* output = malloc(sizeof(struct tcp_port));
-  output->fail_counter = 0;
+  output->fail_counter = -1;
   output->next = NULL;
   return output;
 }
@@ -38,9 +38,11 @@ int check_tcp_ports()
     printf("ret: %d\n", ret);
     close(sock);
     if (ret == -1) {
-      node->fail_counter++;
-      if (node->fail_counter >= 3)
-        return 1;
+      if (node->fail_counter != -1) {
+        node->fail_counter++;
+        if (node->fail_counter >= 3)
+          return 1;
+      }
     } else
       node->fail_counter = 0;
     node = node->next;
@@ -52,7 +54,7 @@ void reset_tcp_ports()
 {
   struct tcp_port* node = tcp_ports;
   while (node) {
-    node->fail_counter = 0;
+    node->fail_counter = -1;
     node = node->next;
   }
 }
