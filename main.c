@@ -64,21 +64,19 @@ int main(int argc, char** argv) {
         break;
       case 't':
         tmp = strtol(optarg, NULL, 10);
-        if ((errno == ERANGE || (tmp == LONG_MAX || tmp == LONG_MIN)) || (errno != 0 && tmp == 0)) {
+        if ((errno == ERANGE || (tmp == LONG_MAX || tmp == LONG_MIN)) || (errno != 0 && tmp == 0) || tmp < 0 || tmp > 65535) {
           fprintf(stderr, "--tcp-port requires a valid port to check.");
           return 1;
         }
-        if (tmp >= 0 && tmp <= 65535) {
-          struct tcp_port* tcp_port = new_tcp_port();
-          tcp_port->port = (unsigned short) tmp;
-          if (!tcp_ports)
-            tcp_ports = tcp_port;
-          else {
-            struct tcp_port* node = tcp_ports;
-            while (node->next)
-              node = node->next;
-            node->next = tcp_port;
-          }
+        struct tcp_port* tcp_port = new_tcp_port();
+        tcp_port->port = (unsigned short) tmp;
+        if (!tcp_ports)
+          tcp_ports = tcp_port;
+        else {
+          struct tcp_port* node = tcp_ports;
+          while (node->next)
+            node = node->next;
+          node->next = tcp_port;
         }
         break;
       case 'i':
