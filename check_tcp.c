@@ -17,6 +17,14 @@ struct tcp_port* new_tcp_port()
   struct tcp_port* output = malloc(sizeof(struct tcp_port));
   output->fail_counter = -1;
   output->next = NULL;
+  if (!tcp_ports)
+    tcp_ports = output;
+  else {
+    struct tcp_port* node = tcp_ports;
+    while (node->next)
+      node = node->next;
+    node->next = output;
+  }
   return output;
 }
 

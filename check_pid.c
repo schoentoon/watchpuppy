@@ -5,7 +5,5 @@
 #include <sys/wait.h>
 
 int check_pid(int pid) {
-  int output;
-  output = waitpid(pid, NULL, WNOHANG);
-  return output;
+  return waitpid(pid, NULL, WNOHANG);
 }

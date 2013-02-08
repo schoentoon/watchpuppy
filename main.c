@@ -25,17 +25,17 @@ static const struct option g_LongOpts[] = {
 int start(char* command) {
   int pid = fork();
   if (pid == -1) {
-    fprintf(stderr, "Error: %s", strerror(errno));
+    fprintf(stderr, "Error: %s\n", strerror(errno));
     exit(2);
   }
   if (pid > 0) {
     DEBUG("pid: %d\n", pid);
-    while (1) {
+    while (1) { /* We'll break out of this loops once we seem dead. */
       if (check_pid(pid))
         break;
       if (check_tcp_ports()) {
         printf("One of our tcp ports are dead.. Let's send it a SIGKILL.\n");
-        kill(pid, 9);
+        kill(pid, SIGKILL);
         break;
       }
       sleep(interval);
@@ -76,19 +76,11 @@ int main(int argc, char** argv) {
       case 't':
         tmp = strtol(optarg, NULL, 10);
         if ((errno == ERANGE || (tmp == LONG_MAX || tmp == LONG_MIN)) || (errno != 0 && tmp == 0) || tmp < 0 || tmp > 65535) {
-          fprintf(stderr, "--tcp-port requires a valid port to check.");
+          fprintf(stderr, "--tcp-port requires a valid port to check.\n");
           return 1;
         }
         struct tcp_port* tcp_port = new_tcp_port();
         tcp_port->port = (unsigned short) tmp;
-        if (!tcp_ports)
-          tcp_ports = tcp_port;
-        else {
-          struct tcp_port* node = tcp_ports;
-          while (node->next)
-            node = node->next;
-          node->next = tcp_port;
-        }
         break;
       case 'i':
         tmp = strtol(optarg, NULL, 10);
