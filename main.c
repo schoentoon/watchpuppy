@@ -15,6 +15,7 @@
 #include <limits.h>
 
 static int interval = 10;
+int program_pid = 0;
 
 static const struct option g_LongOpts[] = {
   { "execute",  required_argument, 0, 'e' },
@@ -26,6 +27,14 @@ static const struct option g_LongOpts[] = {
   { 0, 0, 0, 0 }
 };
 
+void quit(int signal) {
+  if (program_pid > 0) {
+    DEBUG("We've reiceved a %d, so we're killing our child and exiting.\n", signal);
+    kill(program_pid, SIGKILL);
+  }
+  exit(0);
+}
+
 int start(char* command) {
   int pid = fork();
   if (pid == -1) {
@@ -33,6 +42,7 @@ int start(char* command) {
     exit(2);
   }
   if (pid > 0) {
+    program_pid = pid;
     DEBUG("pid: %d\n", pid);
     write_to_log("Started '%s' with pid %d", command, pid);
     while (1) { /* We'll break out of this loops once we seem dead. */
@@ -51,7 +61,7 @@ int start(char* command) {
     execute_hooks();
     write_to_log("Our child '%s' died", command);
     start(command);
-    return 0;
+    return 0; /* Not like we'll ever reach this.. */
   } else if (pid == 0) {
     putenv("MALLOC_CHECK_=3");
     const char *argv[] = { "sh", "-c", command, NULL };
@@ -59,7 +69,8 @@ int start(char* command) {
     fprintf(stderr, "execvp failed\n");
     exit(2);
   } else {
-    DEBUG("fork returned: %d\n", pid);
+    write_to_log("fork() returned %d, this is bad.", pid);
+    DEBUG("fork() returned %d, this is bad.\n", pid);
     exit(3);
   }
 }
@@ -70,7 +81,7 @@ void usage() {
   printf(" -e, --execute [program]\tProgram to execute, use quotes if you want to pass arguments.\n");
   printf(" -t, --tcp-port [port]\t\tPort to monitor, once it won't be able to connect it'll restart your program.\n");
   printf(" -i, --interval [seconds]\tAmount of seconds between checks if it's still alive, defaults to 10 seconds.\n");
-  printf(" -l, --log [logfile]\tWrite a log to this file.\n");
+  printf(" -l, --log [logfile]\t\tWrite a log to this file.\n");
   printf(" -H, --hook [executable]\tProgram to execute in case we have to restart our child (think email scripts).\n");
   printf(" -h, --help\t\t\tShow this help page.\n");
 }
@@ -120,7 +131,12 @@ int main(int argc, char** argv) {
   if (!execute) {
     fprintf(stderr, "Missing the -e flag.\n");
     return 1;
+  } else if (access(execute, F_OK|X_OK)) {
+    fprintf(stderr, "%s either doesn't exist or isn't executable.\n", execute);
+    return 1;
   }
+  signal(SIGINT, quit);
+  signal(SIGQUIT, quit);
   start(execute);
   return 0;
 }
