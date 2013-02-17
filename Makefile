@@ -26,3 +26,6 @@ clean:
 
 test:
 	$(MAKE) -C test
+
+install:
+	cp bin/$(BINARY) /usr/bin/$(BINARY)
