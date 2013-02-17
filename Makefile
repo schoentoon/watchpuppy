@@ -3,7 +3,7 @@ INC    := -I. $(INC)
 DEFINES:= $(DEFINES)
 CC     := gcc
 BINARY := watchpuppy
-DEPS   := build/main.o build/check_pid.o build/check_tcp.o
+DEPS   := build/main.o build/check_pid.o build/check_tcp.o build/hook.o
 
 .PHONY: all clean dev test
 
