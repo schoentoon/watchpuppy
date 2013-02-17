@@ -23,14 +23,16 @@ struct hook* new_hook()
 
 void execute_hooks()
 {
-  DEBUG("Forking to execute our hooks.\n");
-  if (fork() == 0) {
-    struct hook* node = hooks;
-    while (node) {
-      DEBUG("Executing %s\n", node->executable);
-      system(node->executable);
-      node = node->next;
+  if (hooks) {
+    DEBUG("Forking to execute our hooks.\n");
+    if (fork() == 0) {
+      struct hook* node = hooks;
+      while (node) {
+        DEBUG("Executing %s\n", node->executable);
+        system(node->executable);
+        node = node->next;
+      }
+      exit(0);
     }
-    exit(0);
   }
 }
