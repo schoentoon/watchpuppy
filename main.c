@@ -86,6 +86,13 @@ void usage() {
   printf(" -h, --help\t\t\tShow this help page.\n");
 }
 
+int check_access(char* command) {
+  char* tmp = strdup(command);
+  int output = access(strtok(tmp, " "), F_OK|X_OK);
+  free(tmp);
+  return output;
+}
+
 int main(int argc, char** argv) {
   char* execute = NULL;
   int iArg, iOptIndex, tmp = -1;
@@ -131,7 +138,7 @@ int main(int argc, char** argv) {
   if (!execute) {
     fprintf(stderr, "Missing the -e flag.\n");
     return 1;
-  } else if (access(execute, F_OK|X_OK)) {
+  } else if (check_access(execute)) {
     fprintf(stderr, "%s either doesn't exist or isn't executable.\n", execute);
     return 1;
   }
