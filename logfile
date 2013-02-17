@@ -1,0 +1,14 @@
+[2013-02-17 16:20:47.627594] Started 'test/listen' with pid 27812
+[2013-02-17 16:22:16.132144] Started 'test/listen' with pid 27984
+[2013-02-17 16:22:56.135307] Port 8888 seems unreachable fail counter is at 0.
+[2013-02-17 16:23:06.136033] Port 8888 seems unreachable fail counter is at 1.
+[2013-02-17 16:23:16.136840] Port 8888 seems unreachable fail counter is at 2.
+[2013-02-17 16:23:16.137270] Our child 'test/listen' died
+[2013-02-17 16:23:16.137571] Started 'test/listen' with pid 28008
+[2013-02-17 16:24:47.938961] Started 'test/listen' with pid 28078
+[2013-02-17 16:25:27.941981] Port 8888 seems unreachable, fail counter is at 1.
+[2013-02-17 16:25:37.942663] Port 8888 seems unreachable, fail counter is at 2.
+[2013-02-17 16:25:47.943289] Port 8888 seems unreachable, fail counter is at 3.
+[2013-02-17 16:25:47.943408] One of our tcp ports is dead, time to kill our child.
+[2013-02-17 16:25:47.943640] Our child 'test/listen' died
+[2013-02-17 16:25:47.943847] Started 'test/listen' with pid 28095

@@ -1,5 +1,6 @@
 #include "check_tcp.h"
 #include "debug.h"
+#include "log.h"
 
 #include <sys/socket.h>
 #include <stdio.h>
@@ -49,6 +50,7 @@ int check_tcp_ports()
     if (ret == -1) {
       if (node->fail_counter != -1) {
         node->fail_counter++;
+        write_to_log("Port %d seems unreachable, fail counter is at %d.", node->port, node->fail_counter);
         if (node->fail_counter >= 3)
           return 1;
       }

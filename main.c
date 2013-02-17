@@ -2,6 +2,7 @@
 #include "check_tcp.h"
 #include "debug.h"
 #include "hook.h"
+#include "log.h"
 
 #include <getopt.h>
 #include <stdio.h>
@@ -21,6 +22,7 @@ static const struct option g_LongOpts[] = {
   { "interval", required_argument, 0, 'i' },
   { "help",     no_argument,       0, 'h' },
   { "hook",     required_argument, 0, 'H' },
+  { "log",      required_argument, 0, 'l' },
   { 0, 0, 0, 0 }
 };
 
@@ -32,11 +34,13 @@ int start(char* command) {
   }
   if (pid > 0) {
     DEBUG("pid: %d\n", pid);
+    write_to_log("Started '%s' with pid %d", command, pid);
     while (1) { /* We'll break out of this loops once we seem dead. */
       if (check_pid(pid))
         break;
       if (check_tcp_ports()) {
-        printf("One of our tcp ports are dead.. Let's send it a SIGKILL.\n");
+        write_to_log("One of our tcp ports is dead, time to kill our child.");
+        DEBUG("One of our tcp ports is dead.. Let's send it a SIGKILL.\n");
         kill(pid, SIGKILL);
         break;
       }
@@ -45,6 +49,7 @@ int start(char* command) {
     fprintf(stderr, "Our child seems dead :( let's restart it.\n");
     reset_tcp_ports();
     execute_hooks();
+    write_to_log("Our child '%s' died", command);
     start(command);
     return 0;
   } else if (pid == 0) {
@@ -65,6 +70,7 @@ void usage() {
   printf(" -e, --execute [program]\tProgram to execute, use quotes if you want to pass arguments.\n");
   printf(" -t, --tcp-port [port]\t\tPort to monitor, once it won't be able to connect it'll restart your program.\n");
   printf(" -i, --interval [seconds]\tAmount of seconds between checks if it's still alive, defaults to 10 seconds.\n");
+  printf(" -l, --log [logfile]\tWrite a log to this file.\n");
   printf(" -H, --hook [executable]\tProgram to execute in case we have to restart our child (think email scripts).\n");
   printf(" -h, --help\t\t\tShow this help page.\n");
 }
@@ -72,7 +78,7 @@ void usage() {
 int main(int argc, char** argv) {
   char* execute = NULL;
   int iArg, iOptIndex, tmp = -1;
-  while ((iArg = getopt_long(argc, argv, "e:i:t:hH:", g_LongOpts, &iOptIndex)) != -1) {
+  while ((iArg = getopt_long(argc, argv, "e:i:t:hH:l:", g_LongOpts, &iOptIndex)) != -1) {
     switch (iArg) {
       case 'e':
         execute = optarg;
@@ -101,6 +107,9 @@ int main(int argc, char** argv) {
           return 1;
         }
         interval = tmp;
+        break;
+      case 'l':
+        logfile = optarg;
         break;
       default:
       case 'h':
