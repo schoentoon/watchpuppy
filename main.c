@@ -60,8 +60,8 @@ int start(char* command) {
     reset_tcp_ports();
     execute_hooks();
     write_to_log("Our child '%s' died", command);
-    start(command);
-    return 0; /* Not like we'll ever reach this.. */
+//    start(command);
+    return 0;
   } else if (pid == 0) {
     putenv("MALLOC_CHECK_=3");
     const char *argv[] = { "sh", "-c", command, NULL };
@@ -144,6 +144,9 @@ int main(int argc, char** argv) {
   }
   signal(SIGINT, quit);
   signal(SIGQUIT, quit);
-  start(execute);
+  int restarts = 0;
+  for (;; restarts++)
+    start(execute);
+
   return 0;
 }
