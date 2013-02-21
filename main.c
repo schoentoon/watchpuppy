@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
         tcp_port->port = (unsigned short) tmp;
         break;
       case 'H':
-        if (access(optarg, F_OK|X_OK)) {
+        if (check_access(optarg)) {
           fprintf(stderr, "The file passed to --hook either doesn't exist or isn't executable.\n");
           return 1;
         }
@@ -165,7 +165,6 @@ int main(int argc, char** argv) {
     unsigned int runtime = start(execute);
     DEBUG("Runtime: %d\n", runtime);
     if (runtime < minimum_crash_time) {
-      execute_hooks();
       write_to_log("Runtime is less than the minimum runtime specified, so we're quiting.\n");
       return 1;
     }
