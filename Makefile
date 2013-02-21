@@ -29,3 +29,6 @@ test:
 
 install:
 	cp bin/$(BINARY) /usr/bin/$(BINARY)
+
+clang:
+	$(MAKE) dev CC=clang

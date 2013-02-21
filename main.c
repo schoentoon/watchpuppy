@@ -32,8 +32,10 @@ static const struct option g_LongOpts[] = {
 
 void quit(int signal) {
   if (program_pid > 0) {
-    DEBUG("We've reiceved a %d, so we're killing our child and exiting.\n", signal);
-    kill(program_pid, SIGKILL);
+    DEBUG("We've reiceved a %d, so we're telling our child to stop before we stop.\n", signal);
+    kill(program_pid, SIGINT); /* First we'll tell our child to exit */
+    sleep(interval);           /* Kids are slow, let's give it some time.. */
+    kill(program_pid, SIGKILL);/* Still not dead? Fine, let's kill it with fire. */
   }
   exit(0);
 }
