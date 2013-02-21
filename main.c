@@ -13,8 +13,10 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <limits.h>
+#include <time.h>
 
 static int interval = 10;
+static int minimum_crash_time = 60;
 int program_pid = 0;
 
 static const struct option g_LongOpts[] = {
@@ -24,6 +26,7 @@ static const struct option g_LongOpts[] = {
   { "help",     no_argument,       0, 'h' },
   { "hook",     required_argument, 0, 'H' },
   { "log",      required_argument, 0, 'l' },
+  { "minimum",  required_argument, 0, 'm' },
   { 0, 0, 0, 0 }
 };
 
@@ -35,7 +38,7 @@ void quit(int signal) {
   exit(0);
 }
 
-int start(char* command) {
+unsigned int start(char* command) {
   int pid = fork();
   if (pid == -1) {
     fprintf(stderr, "Error: %s\n", strerror(errno));
@@ -45,6 +48,7 @@ int start(char* command) {
     program_pid = pid;
     DEBUG("pid: %d\n", pid);
     write_to_log("Started '%s' with pid %d", command, pid);
+    unsigned int begin = time(NULL);
     while (1) { /* We'll break out of this loops once we seem dead. */
       if (check_pid(pid))
         break;
@@ -60,8 +64,7 @@ int start(char* command) {
     reset_tcp_ports();
     execute_hooks();
     write_to_log("Our child '%s' died", command);
-//    start(command);
-    return 0;
+    return (unsigned int) time(NULL) - begin;
   } else if (pid == 0) {
     putenv("MALLOC_CHECK_=3");
     const char *argv[] = { "sh", "-c", command, NULL };
@@ -83,6 +86,9 @@ void usage() {
   printf(" -i, --interval [seconds]\tAmount of seconds between checks if it's still alive, defaults to 10 seconds.\n");
   printf(" -l, --log [logfile]\t\tWrite a log to this file.\n");
   printf(" -H, --hook [executable]\tProgram to execute in case we have to restart our child (think email scripts).\n");
+  printf(" -m, --minimum [seconds]\tMinimum amount of seconds of runtime required for a restart, defaults to 60 seconds.\n");
+  printf("\t\t\t\tIn case the runtime of your executable is in fact done 'too quickly' watchpuppy will silently exit.\n");
+  printf("\t\t\t\tYou can set this option to 0 to disable this check.\n");
   printf(" -h, --help\t\t\tShow this help page.\n");
 }
 
@@ -96,7 +102,7 @@ int check_access(char* command) {
 int main(int argc, char** argv) {
   char* execute = NULL;
   int iArg, iOptIndex, tmp = -1;
-  while ((iArg = getopt_long(argc, argv, "e:i:t:hH:l:", g_LongOpts, &iOptIndex)) != -1) {
+  while ((iArg = getopt_long(argc, argv, "e:i:t:hH:l:m:", g_LongOpts, &iOptIndex)) != -1) {
     switch (iArg) {
       case 'e':
         execute = optarg;
@@ -126,6 +132,14 @@ int main(int argc, char** argv) {
         }
         interval = tmp;
         break;
+      case 'm':
+        tmp = strtol(optarg, NULL, 10);
+        if ((errno == ERANGE || (tmp == LONG_MAX || tmp == LONG_MIN)) || (errno != 0 && tmp == 0) || tmp < 0) {
+          fprintf(stderr, "--minimum requires a positive amount of seconds.\n");
+          return 1;
+        }
+        minimum_crash_time = tmp;
+        break;
       case 'l':
         logfile = optarg;
         break;
@@ -144,9 +158,15 @@ int main(int argc, char** argv) {
   }
   signal(SIGINT, quit);
   signal(SIGQUIT, quit);
-  int restarts = 0;
-  for (;; restarts++)
-    start(execute);
-
+  unsigned int restarts = 0;
+  for (;;restarts++) {
+    unsigned int runtime = start(execute);
+    DEBUG("Runtime: %d\n", runtime);
+    if (runtime < minimum_crash_time) {
+      execute_hooks();
+      write_to_log("Runtime is less than the minimum runtime specified, so we're quiting.\n");
+      return 1;
+    }
+  }
   return 0;
 }

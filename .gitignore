@@ -18,3 +18,4 @@
 bin/watchpuppy
 test/listen
 *~
+*.swp
