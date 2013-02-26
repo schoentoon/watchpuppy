@@ -1,4 +1,6 @@
 #include "hook.h"
+
+#include "log.h"
 #include "debug.h"
 
 #include <stdlib.h>
@@ -29,7 +31,9 @@ void execute_hooks()
       struct hook* node = hooks;
       while (node) {
         DEBUG("Executing %s\n", node->executable);
-        system(node->executable);
+        int output = system(node->executable);
+        if (output != 0)
+          write_to_log("There was an error while executing hook '%s'", node->executable);
         node = node->next;
       }
       exit(0);

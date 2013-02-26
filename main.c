@@ -165,7 +165,7 @@ int main(int argc, char** argv) {
     unsigned int runtime = start(execute);
     DEBUG("Runtime: %d\n", runtime);
     if (runtime < minimum_crash_time) {
-      write_to_log("Runtime is less than the minimum runtime specified, so we're quiting.\n");
+      write_to_log("Runtime is less than the minimum runtime specified, so we're quiting.");
       return 1;
     }
   }
