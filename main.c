@@ -103,7 +103,8 @@ int check_access(char* command) {
 
 int main(int argc, char** argv) {
   char* execute = NULL;
-  int iArg, iOptIndex, tmp = -1;
+  int iArg, iOptIndex = -1;
+  long tmp = -1;
   while ((iArg = getopt_long(argc, argv, "e:i:t:hH:l:m:", g_LongOpts, &iOptIndex)) != -1) {
     switch (iArg) {
       case 'e':
