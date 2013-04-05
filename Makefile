@@ -1,4 +1,5 @@
 CFLAGS := $(CFLAGS) -Wall -O2 -mtune=native -g
+LFLAGS := -lpthread
 INC    := -I. $(INC)
 DEFINES:= $(DEFINES)
 CC     := gcc
@@ -19,7 +20,7 @@ build:
 	$(CC) $(CFLAGS) $(DEFINES) $(INC) -c -o $@ $(patsubst build/%o,%c,$@)
 
 link: $(DEPS)
-	$(CC) $(CFLAGS) $(DEFINES) $(INC) -o bin/$(BINARY) $(DEPS)
+	$(CC) $(CFLAGS) $(DEFINES) $(INC) -o bin/$(BINARY) $(DEPS) $(LFLAGS)
 
 clean:
 	rm -fv $(DEPS) bin/$(BINARY)

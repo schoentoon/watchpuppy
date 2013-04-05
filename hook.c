@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <pthread.h>
 
 struct hook *hooks = NULL;
 
@@ -23,20 +24,25 @@ struct hook* new_hook()
   return output;
 }
 
+void* execute_hooks_thread(void* hooks);
+
 void execute_hooks()
 {
   if (hooks) {
-    DEBUG("Forking to execute our hooks.\n");
-    if (fork() == 0) {
-      struct hook* node = hooks;
-      while (node) {
-        DEBUG("Executing %s\n", node->executable);
-        int output = system(node->executable);
-        if (output != 0)
-          write_to_log("There was an error while executing hook '%s'", node->executable);
-        node = node->next;
-      }
-      exit(0);
-    }
+    pthread_t thread_t;
+    pthread_create(&thread_t, NULL, execute_hooks_thread, hooks);
   }
+}
+
+void* execute_hooks_thread(void* hooks)
+{
+  struct hook* node = (struct hook*) hooks;
+  while (node) {
+    DEBUG("Executing %s\n", node->executable);
+    int output = system(node->executable);
+    if (output != 0)
+      write_to_log("There was an error while executing hook '%s'", node->executable);
+    node = node->next;
+  }
+  return NULL;
 }
