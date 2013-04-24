@@ -18,8 +18,10 @@
 #ifndef _CHECK_PID_H
 #define _CHECK_PID_H
 
+#include <signal.h>
+
 /** This will check if pid is alive using waitpid.
  */
-int check_pid(int pid);
+int check_pid(pid_t pid);
 
 #endif //_CHECK_PID_H

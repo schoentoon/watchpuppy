@@ -21,6 +21,6 @@
 #include <stdio.h>
 #include <sys/wait.h>
 
-int check_pid(int pid) {
+int check_pid(pid_t pid) {
   return waitpid(pid, NULL, WNOHANG);
 }
