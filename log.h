@@ -20,6 +20,8 @@
 
 char* logfile;
 
+static char* SYSLOG = "syslog";
+
 void write_to_log(const char* format, ...);
 
 #endif //_LOG_H

@@ -161,7 +161,10 @@ int main(int argc, char** argv) {
         minimum_crash_time = tmp;
         break;
       case 'l':
-        logfile = optarg;
+        if (strcmp(optarg, SYSLOG) == 0)
+          logfile = SYSLOG;
+        else
+          logfile = optarg;
         break;
       default:
       case 'h':

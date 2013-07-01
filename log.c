@@ -17,17 +17,23 @@
 
 #include "log.h"
 
-#include <sys/time.h>
+#include <time.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <stdio.h>
-#include <time.h>
+#include <syslog.h>
+#include <sys/time.h>
 
 char* logfile = NULL;
 
 void write_to_log(const char* format, ...)
 {
-  if (logfile) {
+  if (logfile == SYSLOG) {
+    va_list arg;
+    va_start(arg, format);
+    vsyslog(LOG_INFO, format, arg);
+    va_end(arg);
+  } else if (logfile) {
     FILE* f = fopen(logfile, "a");
     struct timeval tv;
     time_t nowtime;
