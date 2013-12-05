@@ -1,10 +1,10 @@
 CFLAGS := $(CFLAGS) -Wall -O2 -mtune=native -g
-LFLAGS := -lpthread
+LFLAGS := -lpthread -ldl
 INC    := -I. $(INC)
 DEFINES:= $(DEFINES)
 CC     := gcc
 BINARY := watchpuppy
-DEPS   := build/main.o build/check_pid.o build/check_tcp.o build/hook.o build/log.o
+DEPS   := build/main.o build/check_pid.o build/check_tcp.o build/hook.o build/log.o build/check_module.o
 
 .PHONY: all clean dev test
 
