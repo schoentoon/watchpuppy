@@ -15,6 +15,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "check_module.h"
 #include "check_pid.h"
 #include "check_tcp.h"
 #include "debug.h"
@@ -31,6 +32,7 @@
 #include <sys/wait.h>
 #include <limits.h>
 #include <time.h>
+#include <dlfcn.h>
 
 static int interval = 10;
 static int minimum_crash_time = 60;
@@ -44,6 +46,7 @@ static const struct option g_LongOpts[] = {
   { "hook",     required_argument, 0, 'H' },
   { "log",      required_argument, 0, 'l' },
   { "minimum",  required_argument, 0, 'm' },
+  { "module",   required_argument, 0, 'M' },
   { 0, 0, 0, 0 }
 };
 
@@ -72,8 +75,10 @@ unsigned int start(char* command) {
       if (check_pid(pid))
         break;
       if (check_tcp_ports()) {
-        write_to_log("One of our tcp ports is dead, time to kill our child.");
-        DEBUG("One of our tcp ports is dead.. Let's send it a SIGKILL.\n");
+        kill(pid, SIGKILL);
+        break;
+      }
+      if (check_modules()) {
         kill(pid, SIGKILL);
         break;
       }
@@ -108,6 +113,7 @@ void usage() {
   printf(" -m, --minimum [seconds]\tMinimum amount of seconds of runtime required for a restart, defaults to 60 seconds.\n");
   printf("\t\t\t\tIn case the runtime of your executable is in fact done 'too quickly' watchpuppy will silently exit.\n");
   printf("\t\t\t\tYou can set this option to 0 to disable this check.\n");
+  printf(" -M, --module [module path]\tUse this module to perform checks if we're still running.\n");
   printf(" -h, --help\t\t\tShow this help page.\n");
 }
 
@@ -122,7 +128,7 @@ int main(int argc, char** argv) {
   char* execute = NULL;
   int iArg, iOptIndex = -1;
   long tmp = -1;
-  while ((iArg = getopt_long(argc, argv, "e:i:t:hH:l:m:", g_LongOpts, &iOptIndex)) != -1) {
+  while ((iArg = getopt_long(argc, argv, "e:i:t:hH:l:m:M:", g_LongOpts, &iOptIndex)) != -1) {
     switch (iArg) {
       case 'e':
         execute = optarg;
@@ -136,6 +142,13 @@ int main(int argc, char** argv) {
         struct tcp_port* tcp_port = new_tcp_port();
         tcp_port->port = (unsigned short) tmp;
         break;
+      case 'M': {
+        struct module* module = new_module(optarg);
+        if (!module) {
+          fprintf(stderr, "There was an error loading '%s', %s.\n", optarg, dlerror());
+        }
+        break;
+      }
       case 'H':
         if (check_access(optarg)) {
           fprintf(stderr, "The file passed to --hook either doesn't exist or isn't executable.\n");
