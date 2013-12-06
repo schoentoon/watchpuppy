@@ -20,6 +20,7 @@
 
 #include <stddef.h>
 
+typedef void init_func();
 typedef int check();
 typedef int log_msg(char* buf, size_t buflen);
 

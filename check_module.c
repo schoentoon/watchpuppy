@@ -34,6 +34,9 @@ struct module* new_module(char* filename)
     dlclose(handle);
     return NULL;
   }
+  init_func *init = dlsym(handle, "init");
+  if (init)
+    init();
   struct module* output = malloc(sizeof(struct module));
   output->fail_counter = -1;
   output->mod_handle = handle;
