@@ -11,17 +11,18 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-void init()
+void* init()
 {
   SSL_load_error_strings();
   SSL_library_init();
   ERR_load_BIO_strings();
   OpenSSL_add_all_algorithms();
+  return NULL;
 };
 
 #define PORT 4433
 
-int check()
+int check(void* context)
 {
   int output = 0;
   SSL_CTX* ctx = SSL_CTX_new(SSLv23_client_method());

@@ -34,10 +34,11 @@ struct module* new_module(char* filename)
     dlclose(handle);
     return NULL;
   }
+  struct module* output = malloc(sizeof(struct module));
+  output->context = NULL;
   init_func *init = dlsym(handle, "init");
   if (init)
-    init();
-  struct module* output = malloc(sizeof(struct module));
+    output->context = init();
   output->fail_counter = -1;
   output->mod_handle = handle;
   output->check_func = check;
@@ -58,13 +59,13 @@ int check_modules()
 {
   struct module* node = modules;
   while (node) {
-    int ret = node->check_func();
+    int ret = node->check_func(node->context);
     if (ret == -1) {
       if (node->fail_counter != -1) {
         node->fail_counter++;
         if (node->log_func) {
           char buf[BUFSIZ];
-          if (node->log_func(buf, sizeof(buf)) > 0)
+          if (node->log_func(buf, sizeof(buf), node->context) > 0)
             write_to_log(buf);
         }
         if (node->fail_counter >= 3)

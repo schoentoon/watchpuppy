@@ -20,13 +20,14 @@
 
 #include <stddef.h>
 
-typedef void init_func();
-typedef int check();
-typedef int log_msg(char* buf, size_t buflen);
+typedef void* init_func();
+typedef int check(void* context);
+typedef int log_msg(char* buf, size_t buflen, void* context);
 
 struct module {
   void* mod_handle;
   char fail_counter;
+  void* context;
   check* check_func;
   log_msg* log_func;
   struct module* next;
